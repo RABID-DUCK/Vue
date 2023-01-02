@@ -2,10 +2,15 @@
     <div>
         <div class="app">
             <h1>Page with posts</h1>
-            <my-button @click="fetchPosts">Get posts</my-button>
-            <my-button 
-            @click="showDialog"
-            >Create post</my-button>
+            <div class="app__btns">
+                <my-button 
+                @click="showDialog"
+                >Create post</my-button>
+                <my-select 
+                    v-model="selectedSort"
+                    :options="sortOptions"
+                />
+            </div>
             <my-dialog  v-model:show="dialogVisible">
                 <post-form
                 @create="createPost"
@@ -13,7 +18,10 @@
             </my-dialog>
             <post-list 
             :posts="posts"
-            @remove="removePost" />
+            @remove="removePost"
+            v-if="!isPostLoading"
+            />
+            <div v-else>Loading ...</div>
         </div>
     </div>
 </template>
@@ -24,16 +32,24 @@ import PostList from "@/components/PostList.vue";
 import MyDialog from './components/UI/MyDialog.vue';
 import MyButton from './components/UI/MyButton.vue';
 import axios from 'axios'
+import MySelect from './components/UI/MySelect.vue';
 
     export default{
         components: {
             PostForm, PostList, MyDialog,
-                MyButton
+                MyButton,
+                MySelect
         },
         data(){
             return {
                 posts: [],
-                dialogVisible: false
+                dialogVisible: false,
+                isPostLoading: false,
+                selectedSort: '',
+                sortOptions: [
+                    {value: 'title', name: 'by name'},
+                    {value: 'body', name: 'by content'}
+                ]
             }
         },
         methods: {
@@ -49,14 +65,19 @@ import axios from 'axios'
             },
             async fetchPosts(){
                 try{
+                    this.isPostLoading = true;
                     const response = await axios.get('https://jsonplaceholder.typicode.com/posts?_limit=10');
                     this.posts = response.data;
-
                 }
                 catch (e){
                     alert("Error");
+                } finally{
+                    this.isPostLoading = false;
                 }
             }
+        },
+        mounted() {
+            this.fetchPosts();
         }
     }
 </script>
@@ -71,4 +92,13 @@ import axios from 'axios'
     padding: 20px;
 }
 
+.app button{
+    margin: 15px 10px 15px 0;
+    cursor: pointer;
+}
+
+.app__btns{
+    display: flex;
+    justify-content: space-between;
+}
 </style>
