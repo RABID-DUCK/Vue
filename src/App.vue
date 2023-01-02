@@ -1,10 +1,19 @@
 <template>
     <div>
         <div class="app">
-            <post-form
-            @create="createPost"
-             />
-            <post-list :posts="posts" />
+            <h1>Page with posts</h1>
+            <my-button @click="fetchPosts">Get posts</my-button>
+            <my-button 
+            @click="showDialog"
+            >Create post</my-button>
+            <my-dialog  v-model:show="dialogVisible">
+                <post-form
+                @create="createPost"
+                />
+            </my-dialog>
+            <post-list 
+            :posts="posts"
+            @remove="removePost" />
         </div>
     </div>
 </template>
@@ -12,24 +21,42 @@
 <script>
 import PostForm from "@/components/PostForm.vue";
 import PostList from "@/components/PostList.vue";
+import MyDialog from './components/UI/MyDialog.vue';
+import MyButton from './components/UI/MyButton.vue';
+import axios from 'axios'
 
     export default{
         components: {
-            PostForm, PostList
+            PostForm, PostList, MyDialog,
+                MyButton
         },
         data(){
             return {
-                posts: [
-                    {id: 1, title: 'JavaScript', body: 'Description post'},
-                    {id: 2, title: 'JavaScript 2', body: 'Description post 2'},
-                    {id: 3, title: 'JavaScrip 3', body: 'Description post 3'},
-                ],
+                posts: [],
+                dialogVisible: false
             }
         },
         methods: {
             createPost(post){
                 this.posts.push(post);
+                this.dialogVisible = false;
             },
+            removePost(post){
+                this.posts = this.posts.filter(p => p.id !== post.id);
+            },
+            showDialog(){
+                this.dialogVisible = true;
+            },
+            async fetchPosts(){
+                try{
+                    const response = await axios.get('https://jsonplaceholder.typicode.com/posts?_limit=10');
+                    this.posts = response.data;
+
+                }
+                catch (e){
+                    alert("Error");
+                }
+            }
         }
     }
 </script>
