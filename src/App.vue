@@ -2,6 +2,10 @@
     <div>
         <div class="app">
             <h1>Page with posts</h1>
+            <my-input 
+                v-model="searchQuery"
+                placeholder="Search..."
+            />
             <div class="app__btns">
                 <my-button 
                 @click="showDialog"
@@ -17,11 +21,24 @@
                 />
             </my-dialog>
             <post-list 
-            :posts="posts"
+            :posts="sortedAndSearhPosts"
             @remove="removePost"
             v-if="!isPostLoading"
             />
             <div v-else>Loading ...</div>
+            <div class="page-wrapper">
+                <div
+            class="page"
+            v-for="pageNum in totalPages"
+            :key="pageNum"
+            :class="{
+                'current-page': page === pageNum
+            }"
+            @click="changePage(pageNum)"
+            >
+            {{ pageNum }}
+            </div>
+            </div>
         </div>
     </div>
 </template>
@@ -33,12 +50,14 @@ import MyDialog from './components/UI/MyDialog.vue';
 import MyButton from './components/UI/MyButton.vue';
 import axios from 'axios'
 import MySelect from './components/UI/MySelect.vue';
+import MyInput from './components/UI/MyInput.vue';
 
     export default{
         components: {
             PostForm, PostList, MyDialog,
                 MyButton,
-                MySelect
+                MySelect,
+                MyInput
         },
         data(){
             return {
@@ -46,6 +65,10 @@ import MySelect from './components/UI/MySelect.vue';
                 dialogVisible: false,
                 isPostLoading: false,
                 selectedSort: '',
+                searchQuery: '',
+                page: 1,
+                limit: 10,
+                totalPages: 0, 
                 sortOptions: [
                     {value: 'title', name: 'by name'},
                     {value: 'body', name: 'by content'}
@@ -63,10 +86,20 @@ import MySelect from './components/UI/MySelect.vue';
             showDialog(){
                 this.dialogVisible = true;
             },
+            changePage(pageNum) {
+                this.page = pageNum;
+                this.fetchPosts();
+            },
             async fetchPosts(){
                 try{
                     this.isPostLoading = true;
-                    const response = await axios.get('https://jsonplaceholder.typicode.com/posts?_limit=10');
+                    const response = await axios.get('https://jsonplaceholder.typicode.com/posts?', {
+                        params: {
+                            _page: this.page,
+                            _limit: this.limit
+                        }
+                    });
+                    this.totalPages = Math.ceil(response.headers['x-total-count'] / this.limit)
                     this.posts = response.data;
                 }
                 catch (e){
@@ -78,6 +111,17 @@ import MySelect from './components/UI/MySelect.vue';
         },
         mounted() {
             this.fetchPosts();
+        },
+        computed: {
+            sortedPosts(){
+                return [...this.posts].sort((post1, post2) => post1[this.selectedSort]?.localeCompare(post2[this.selectedSort]));
+            },
+            sortedAndSearhPosts(){
+                return this.sortedPosts.filter(post => post.title.toLowerCase().includes(this.searchQuery.toLowerCase()));
+            }
+        },
+        watch: {
+            
         }
     }
 </script>
@@ -100,5 +144,20 @@ import MySelect from './components/UI/MySelect.vue';
 .app__btns{
     display: flex;
     justify-content: space-between;
+}
+
+.page-wrapper{
+    display: flex;
+}
+
+.page{
+    border: 1px solid black;
+    padding: 10px;
+    margin-top: 15px;
+}
+
+.current-page{
+    border: 2px solid teal;
+    background-color: lightgray;
 }
 </style>
