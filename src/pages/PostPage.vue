@@ -1,9 +1,11 @@
 <template>
     <div>
         <div>
+            
             <h1>Page with posts</h1>
             <my-input 
                 v-model="searchQuery"
+                v-focus
                 placeholder="Search..."
             />
             <div class="app__btns">
@@ -15,6 +17,7 @@
                     :options="sortOptions"
                 />
             </div>
+            <div></div>
             <my-dialog  v-model:show="dialogVisible">
                 <post-form
                 @create="createPost"

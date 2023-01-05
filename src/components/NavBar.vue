@@ -4,6 +4,7 @@
     <div class="navbar_btns">
         <my-button @click="$router.push('/posts')">Posts</my-button>
         <my-button @click="$router.push('/about')">About us</my-button>
+        <my-button @click="$router.push('/composition')">Composition</my-button>
     </div>
   </div>
 </template>
